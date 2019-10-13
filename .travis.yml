@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t godomainz/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run godomainz/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t godomainz/muilti-client ./client
+  - docker build -t godomainz/muilti-nginx ./nginx
+  - docker build -t godomainz/muilti-server ./server
+  - docker build -t godomainz/muilti-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push godomainz/muilti-client
+  - docker push godomainz/muilti-nginx
+  - docker push godomainz/muilti-server
+  - docker push godomainz/muilti-worker
